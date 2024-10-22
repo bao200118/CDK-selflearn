@@ -1,0 +1,81 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<div style="font-size: 24px; margin-bottom: 8px">
+    <b>Call 10 request to backend</b>
+</div>
+<button class="button_request_backend">Execute</button>
+<div style="white-space: break-spaces" class="request_backend_result"></div>
+<br />
+<br />
+<div style="font-size: 24px; margin-bottom: 8px">
+    <b>Call 10 request to database through</b>
+</div>
+<button class="button_request_database">Execute</button>
+<div style="white-space: break-spaces" class="request_database_result"></div>
+</body>
+</html>
+<script>
+    const buttonRequestBE = document.getElementsByClassName('button_request_backend')[0]
+    const buttonRequestDB = document.getElementsByClassName('button_request_database')[0]
+    const resultBE = document.getElementsByClassName('request_backend_result')[0]
+    const resultDB = document.getElementsByClassName('request_database_result')[0]
+    buttonRequestBE.addEventListener('click', () => {
+        buttonRequestBE.textContent = 'Requesting backend'
+        buttonRequestBE.style.cssText += 'pointer-events: none;background-color: yellow'
+        let requestReturn = 0
+        for (let i = 0; i < 10; i++) {
+            fetch("<%= apiUrl %>/request-backend", {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            })
+                .then(() => {
+                    buttonRequestBE.textContent = 'Request backend'
+                    buttonRequestBE.style.cssText += 'background-color: green'
+                    requestReturn += 1
+                    resultBE.textContent += `Request ${requestReturn} success\n`
+                })
+                .catch(() => {
+                    buttonRequestBE.textContent = 'Execute'
+                    buttonRequestBE.style.cssText += 'pointer-events: auto;background-color: red'
+                    requestReturn += 1
+                    resultBE.textContent += `Request ${requestReturn} failed\n`
+                })
+        }
+
+    })
+    buttonRequestDB.addEventListener('click', () => {
+        buttonRequestDB.textContent = 'Requesting database'
+        buttonRequestDB.style.cssText += 'pointer-events: none;background-color: yellow'
+        let requestReturn = 0
+        for (let i = 0; i < 10; i++) {
+            fetch("<%= apiUrl %>/request-database", {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            })
+                .then(() => {
+                    buttonRequestDB.textContent = 'Request database'
+                    buttonRequestDB.style.cssText += 'background-color: green'
+                    requestReturn += 1
+                    resultDB.textContent += `Request ${requestReturn} success\n`
+                })
+                .catch(() => {
+                    buttonRequestDB.textContent = 'Execute'
+                    buttonRequestDB.style.cssText += 'pointer-events: auto;background-color: red'
+                    requestReturn += 1
+                    resultDB.textContent += `Request ${requestReturn} failed\n`
+                })
+        }
+
+    })
+</script>
