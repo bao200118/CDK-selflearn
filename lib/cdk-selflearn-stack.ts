@@ -22,23 +22,23 @@ export class CdkSelflearnStack extends cdk.Stack {
     const s3 = new S3Stack(this);
     const ec2 = new EC2Stack(this);
     const route53 = new Route53Stack(this);
-    const acm = new AcmStack(this, route53);
-    const cloudfront = new CloudfrontStack(this, s3, acm);
-    const targetCloudfrontRecord = Route53Stack.createCloudfrontTargetRecord(
-      cloudfront.distribution,
-    );
-    route53.addARecord(
-      'cloudhosting.click',
-      'cdk-alias-a-record-cloudfront',
-      targetCloudfrontRecord,
-    );
-    const ecrApi = new EcrStack(this, 'cdk-repository-api');
-    const ecrFe = new EcrStack(this, 'cdk-repository-fe');
-    const ecrAdmin = new EcrStack(this, 'cdk-repository-admin');
-    const alb = new AlbStack(this, ec2);
-    const ecs = new ECSStack(this, ec2, alb, ecrApi, ecrAdmin, ecrFe, s3);
-    const targetAlbRecord = Route53Stack.createAlbTargetRecord(alb.alb);
-    route53.addARecord('api.cloudhosting.click', 'alias-a-record-alb', targetAlbRecord);
+    // const acm = new AcmStack(this, route53);
+    // const cloudfront = new CloudfrontStack(this, s3, acm);
+    // const targetCloudfrontRecord = Route53Stack.createCloudfrontTargetRecord(
+    //   cloudfront.distribution,
+    // );
+    // route53.addARecord(
+    //   'cloudhosting.click',
+    //   'cdk-alias-a-record-cloudfront',
+    //   targetCloudfrontRecord,
+    // );
     const rds = new RDSStack(this, 'rds_cdk', { ec2 });
+    // const ecrApi = new EcrStack(this, 'cdk-repository-api');
+    // const ecrFe = new EcrStack(this, 'cdk-repository-fe');
+    // const ecrAdmin = new EcrStack(this, 'cdk-repository-admin');
+    const alb = new AlbStack(this, ec2);
+    const ecs = new ECSStack(this, ec2, alb, s3, rds);
+    const targetAlbRecord = Route53Stack.createAlbTargetRecord(alb.alb);
+    route53.addARecord('prtg.cloudhosting.click', 'alias-a-record-alb', targetAlbRecord);
   }
 }

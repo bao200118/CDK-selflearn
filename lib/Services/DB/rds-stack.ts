@@ -13,7 +13,7 @@ export interface rdsProps extends StackProps {
 export class RDSStack extends Construct {
   private readonly ec2: EC2Stack;
 
-  protected readonly rdsInstance: rds.DatabaseInstance;
+  public readonly rdsInstance: rds.DatabaseInstance;
   constructor(scope: Construct, id: string, props: rdsProps) {
     super(scope, id);
     this.ec2 = props.ec2;
@@ -33,7 +33,7 @@ export class RDSStack extends Construct {
     // Create an RDS instance
     this.rdsInstance = new rds.DatabaseInstance(this, 'MyRdsInstance', {
       instanceIdentifier: 'DevDeployInstance',
-      engine: rds.DatabaseInstanceEngine.mysql({ version: rds.MysqlEngineVersion.VER_8_0_28 }),
+      engine: rds.DatabaseInstanceEngine.mysql({ version: rds.MysqlEngineVersion.VER_8_0_36 }),
       vpc: this.ec2.vpc,
       credentials: rds.Credentials.fromSecret(rdsCredentials),
       databaseName: 'myUnqueDbName',

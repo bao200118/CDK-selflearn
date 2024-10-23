@@ -14,7 +14,7 @@ export class CloudfrontStack {
   constructor(scope: Construct, s3: S3Stack, acm: AcmStack) {
     const s3BucketOAC = new cloudfront.CfnOriginAccessControl(scope, 'cdk-s3-bucket-OAC', {
       originAccessControlConfig: {
-        name: 's3-bucket-OAC',
+        name: 's3-bucket-OAC-cdk',
         originAccessControlOriginType: 's3',
         signingBehavior: 'always',
         signingProtocol: 'sigv4',
