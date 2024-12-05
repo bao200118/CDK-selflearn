@@ -5,7 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "github_action_cdk" ]
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
 
 jobs:
   deploy:
