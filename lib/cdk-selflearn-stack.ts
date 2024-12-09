@@ -45,11 +45,11 @@ export class CdkSelflearnStack extends cdk.Stack {
     const inputCodebuild = new awsCodepipeline.Artifact()
     const githubSource = new codepipelineActions.CodeStarConnectionsSourceAction({
       actionName: `Cdk-GithubConnectionSourceAction`,
-      owner: process.env.GITHUB_OWNER || '',
+      owner: process.env.AWS_GITHUB_OWNER || '',
       repo: 'CDK-selflearn',
       branch: 'master',
       output: inputCodebuild,
-      connectionArn: process.env.GITHUB_CONNECTION_ARN || '',
+      connectionArn: process.env.AWS_GITHUB_CONNECTION_ARN || '',
     });
 
     codepipeline.addStage({
