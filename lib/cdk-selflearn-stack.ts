@@ -169,7 +169,7 @@ export class CdkSelflearnStack extends cdk.Stack {
       ]
     })
     codepipeline.addStage({
-      stageName: 'ManualApprove',
+      stageName: 'Deploy',
       actions: [
         new codepipelineActions.CodeBuildAction({
           actionName: `Cdk-CodebuildAction-Deploy`,
