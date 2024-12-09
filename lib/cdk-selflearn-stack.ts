@@ -7,7 +7,11 @@ import * as codepipelineActions from 'aws-cdk-lib/aws-codepipeline-actions'
 import * as codebuild from 'aws-cdk-lib/aws-codebuild'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import * as logs from 'aws-cdk-lib/aws-logs'
+import * as dotenv from 'dotenv';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
+
+dotenv.config({})
+
 
 export class CdkSelflearnStack extends cdk.Stack {
   public readonly cluster: ecs.Cluster;
