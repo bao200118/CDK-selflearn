@@ -19,7 +19,7 @@ export class CdkSelflearnStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY
     })
 
-    const codepipeline = new awsCodepipeline.Pipeline(scope, `Cdk-Codepipeline`, {
+    const codepipeline = new awsCodepipeline.Pipeline(this, `Cdk-Codepipeline`, {
       pipelineName: 'cdk-codepipeline',
       artifactBucket: artifactBucket,
     });
@@ -57,7 +57,7 @@ export class CdkSelflearnStack extends cdk.Stack {
       actions: [githubSource],
     });
 
-    const codebuildRole = new iam.Role(scope, `Cdk-CodebuildRole`, {
+    const codebuildRole = new iam.Role(this, `Cdk-CodebuildRole`, {
       roleName: `Cdk-CodebuildRole`,
       assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
     });
