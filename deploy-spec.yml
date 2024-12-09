@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Extracting cached dependencies..."
+      - unzip -q node_modules.zip -d ./ # Unzip into the current directory
+  deploy:
+    commands:
+      - echo "Copy environment"
+      - cp .env.development .env
+      - cdk deploy --require-approval never -c stage=stag
+artifacts:
+  files:
+    - "**/*" # Include your build artifacts

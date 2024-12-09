@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - npm install
+      - cdk bootstrap
+      - cdk diff -c stage=stag
+      - echo "Zipping node_modules for caching..."
+      - zip -r node_modules.zip node_modules # Compress node_modules
+artifacts:
+  files:
+    - node_modules.zip # Include the compressed dependencies as an artifact
