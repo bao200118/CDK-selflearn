@@ -1,15 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { S3Stack } from './s3-stack';
-import { EC2Stack } from './ec2-stack';
-import { ECSStack } from './cluster-stack';
-import { CloudfrontStack } from './cloudfront-stack';
-import { AcmStack } from './acm-stack';
-import { Route53Stack } from './route53-stack';
-import { AlbStack } from './alb-stack';
-import { EcrStack } from './ecr-stack';
+import * as s3 from 'aws-cdk-lib/aws-s3'
+import * as awsCodepipeline from 'aws-cdk-lib/aws-codepipeline'
+import * as codepipelineActions from 'aws-cdk-lib/aws-codepipeline-actions'
+import * as codebuild from 'aws-cdk-lib/aws-codebuild'
+import * as iam from 'aws-cdk-lib/aws-iam'
+import * as logs from 'aws-cdk-lib/aws-logs'
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class CdkSelflearnStack extends cdk.Stack {
@@ -17,25 +14,206 @@ export class CdkSelflearnStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const s3 = new S3Stack(this);
-    // const ec2 = new EC2Stack(this);
-    // const route53 = new Route53Stack(this);
-    // const acm = new AcmStack(this, route53);
-    // const cloudfront = new CloudfrontStack(this, s3, acm);
-    // const targetCloudfrontRecord = Route53Stack.createCloudfrontTargetRecord(
-    //   cloudfront.distribution
-    // );
-    // route53.addARecord(
-    //   'cloudhosting.click',
-    //   'cdk-alias-a-record-cloudfront',
-    //   targetCloudfrontRecord
-    // );
-    // const ecrApi = new EcrStack(this, 'cdk-repository-api');
-    // const ecrFe = new EcrStack(this, 'cdk-repository-fe');
-    // const ecrAdmin = new EcrStack(this, 'cdk-repository-admin');
-    // const alb = new AlbStack(this, ec2);
-    // const ecs = new ECSStack(this, ec2, alb, ecrApi, ecrAdmin, ecrFe, s3);
-    // const targetAlbRecord = Route53Stack.createAlbTargetRecord(alb.alb);
-    // route53.addARecord('api.cloudhosting.click', 'alias-a-record-alb', targetAlbRecord);
+    const artifactBucket = new s3.Bucket(this, 'Cdk-BucketArtifact', {
+      bucketName: 'cdk-bucket-artifact',
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    })
+
+    const codepipeline = new awsCodepipeline.Pipeline(scope, `Cdk-Codepipeline`, {
+      pipelineName: 'cdk-codepipeline',
+      artifactBucket: artifactBucket,
+    });
+
+    codepipeline.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'codebuild:BatchGetBuilds',
+          'codebuild:StartBuild',
+          'iam:PassRole',
+          'iam:CreateRole',
+          'iam:AttachRolePolicy',
+          'iam:DetachRolePolicy',
+          's3:*',
+          'lambda:*',
+          'codestar-connections:*',
+        ],
+        resources: ['*'],
+      })
+    );
+
+    const inputCodebuild = new awsCodepipeline.Artifact()
+    const githubSource = new codepipelineActions.CodeStarConnectionsSourceAction({
+      actionName: `Cdk-GithubConnectionSourceAction`,
+      owner: process.env.GITHUB_OWNER || '',
+      repo: 'CDK-selflearn',
+      branch: 'master',
+      output: inputCodebuild,
+      connectionArn: process.env.GITHUB_CONNECTION_ARN || '',
+    });
+
+    codepipeline.addStage({
+      stageName: 'Source',
+      actions: [githubSource],
+    });
+
+    const codebuildRole = new iam.Role(scope, `Cdk-CodebuildRole`, {
+      roleName: `Cdk-CodebuildRole`,
+      assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
+    });
+
+    codebuildRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'lambda:*',
+          'logs:CreateLogGroup',
+          'logs:CreateLogStream',
+          'logs:PutLogEvents',
+          's3:GetObject',
+          's3:PutObject',
+          'cloudformation:*',
+        ],
+        resources: ['*'],
+      })
+    );
+
+    codebuildRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['iam:*'],
+        resources: ['arn:aws:iam::*:role/lambda-execution-role*'],
+      })
+    );
+
+    const policyCdk = new iam.Policy(this, 'Cdk-Policy-Cdk', {
+      statements: [
+        new iam.PolicyStatement({
+          sid: "StsAccess",
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "sts:AssumeRole",
+            "iam:*Role*"
+          ],
+          resources: [
+            `arn:aws:iam::${process.env.AWS_ACCOUNT_ID}:role/cdk-*`
+          ]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "cloudformation:*"
+          ],
+          resources: [
+            `arn:aws:cloudformation:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:stack/CDKToolkit/*`
+          ],
+        }),
+        new iam.PolicyStatement({
+          sid: "S3Access",
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "s3:*"
+          ],
+          resources: [
+            "*"
+          ]
+        }),
+        new iam.PolicyStatement({
+          sid: "ECRAccess",
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "ecr:SetRepositoryPolicy",
+            "ecr:GetLifecyclePolicy",
+            "ecr:PutImageScanningConfiguration",
+            "ecr:DescribeRepositories",
+            "ecr:CreateRepository",
+            "ecr:DeleteRepository",
+            "ecr:PutLifecyclePolicy"
+          ],
+          resources: [
+            `arn:aws:ecr:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:repository/cdk-*`
+          ]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "ssm:GetParameter*",
+            "ssm:PutParameter*",
+            "ssm:DeleteParameter*"
+          ],
+          resources: [
+            `arn:aws:ssm:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:parameter/cdk-bootstrap/*`],
+        })
+      ]
+    })
+
+    policyCdk.attachToRole(codebuildRole)
+    const outputChangeSets = new awsCodepipeline.Artifact()
+    codepipeline.addStage({
+      stageName: 'ChangeSet',
+      actions: [
+        new codepipelineActions.CodeBuildAction({
+          actionName: `Cdk-CodebuildAction-ChangeSets`,
+          project: this.createCodebuildProject('ChangeSets', 'changesets-spec.yml', codebuildRole),
+          input: inputCodebuild,
+          // Output zip file node_modules, so that deploy stage no need to install again
+          outputs: [outputChangeSets],
+        }),
+      ],
+    });
+    codepipeline.addStage({
+      stageName: 'ManualApprove',
+      actions: [
+        new codepipelineActions.ManualApprovalAction({
+          actionName: 'Cdk-Manual-Approve'
+        })
+      ]
+    })
+    codepipeline.addStage({
+      stageName: 'ManualApprove',
+      actions: [
+        new codepipelineActions.CodeBuildAction({
+          actionName: `Cdk-CodebuildAction-Deploy`,
+          project: this.createCodebuildProject('Deploy', 'deploy-spec.yml', codebuildRole),
+          input: outputChangeSets,
+        }),
+      ]
+    })
+  }
+
+  // Get all variable in file env
+  private createCodebuildProject(stage: string, buildSpecFile: string, codebuildRole: iam.Role) {
+    return new codebuild.PipelineProject(
+      this,
+      `Cdk-CodebuildProject-${stage}`,
+      {
+        projectName: `Cdk-CodebuildProject-${stage}`,
+        role: codebuildRole,
+        buildSpec: codebuild.BuildSpec.fromSourceFilename(buildSpecFile),
+        environment: {
+          computeType: codebuild.ComputeType.SMALL,
+        },
+        environmentVariables: {
+          VARIABLE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: 'test-variable'
+          }
+        },
+        logging: {
+          cloudWatch: {
+            logGroup: new logs.LogGroup(
+              this,
+              `Cdk-LogGroup-Codebuild-${stage}`,
+              {
+                logGroupName: `Cdk-LogGroup-Codebuild-${stage}`,
+                removalPolicy: cdk.RemovalPolicy.DESTROY,
+                retention: logs.RetentionDays.THREE_MONTHS,
+              }
+            ),
+            enabled: true,
+            prefix: 'Cdk',
+          },
+        },
+      }
+    )
   }
 }
