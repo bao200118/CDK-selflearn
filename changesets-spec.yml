@@ -8,7 +8,7 @@ phases:
     commands:
       - npm install
       - npm install -g aws-cdk
-      - npx cdk bootstrap
+      - cdk bootstrap
       - cdk diff -c stage=stag
       - echo "Zipping node_modules for caching..."
       - zip -r node_modules.zip node_modules # Compress node_modules
