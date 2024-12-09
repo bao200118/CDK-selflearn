@@ -4,6 +4,7 @@ phases:
   pre_build:
     commands:
       - npm install
+      - npm install aws-cdk
       - cdk bootstrap
       - cdk diff -c stage=stag
       - echo "Zipping node_modules for caching..."
