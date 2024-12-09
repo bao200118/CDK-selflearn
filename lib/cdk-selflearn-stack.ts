@@ -157,7 +157,7 @@ export class CdkSelflearnStack extends cdk.Stack {
       actions: [
         new codepipelineActions.CodeBuildAction({
           actionName: `Cdk-CodebuildAction-ChangeSets`,
-          project: this.createCodebuildProject('ChangeSets', 'changesets-spec.yaml', codebuildRole),
+          project: this.createCodebuildProject('ChangeSets', 'changesets-spec.yml', codebuildRole),
           input: inputCodebuild,
           // Output zip file node_modules, so that deploy stage no need to install again
           outputs: [outputChangeSets],
@@ -177,7 +177,7 @@ export class CdkSelflearnStack extends cdk.Stack {
       actions: [
         new codepipelineActions.CodeBuildAction({
           actionName: `Cdk-CodebuildAction-Deploy`,
-          project: this.createCodebuildProject('Deploy', 'deploy-spec.yaml', codebuildRole),
+          project: this.createCodebuildProject('Deploy', 'deploy-spec.yml', codebuildRole),
           input: outputChangeSets,
         }),
       ]

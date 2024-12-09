@@ -1,6 +1,9 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: 18 # Specify the desired Node.js version
   pre_build:
     commands:
       - echo "Extracting cached dependencies..."
