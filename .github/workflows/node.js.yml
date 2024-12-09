@@ -45,3 +45,4 @@ jobs:
       # Step 6: Deploy CDK stack
       - name: CDK Deploy
         run: npx cdk deploy --require-approval never
+        env: ${{ secrets }}
