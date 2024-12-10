@@ -4,20 +4,17 @@ phases:
   install:
     runtime-versions:
       nodejs: 18 # Specify the desired Node.js version
-    commands:
-      - echo "Installing AWS CDK..."
-      - npm install -g aws-cdk  # Install AWS CDK globally
   pre_build:
     commands:
       - npm install
       - echo "Configuring AWS CLI..."
       - aws --version  # Verify AWS CLI is installed
       - echo "Configuring AWS CDK..."
-      - cdk --version  # Verify AWS CDK is installed
+      - npm run cdk --version  # Verify AWS CDK is installed
       - echo "Retrieving AWS Account ID..."
       - export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)  # Dynamically get Account ID
-      - cdk bootstrap aws://${AWS_ACCOUNT_ID}/${AWS_REGION}
-      - cdk diff -c stage=stag
+      - npm run cdk-bootstrap aws://${AWS_ACCOUNT_ID}/${AWS_REGION}
+      - npm run cdk-diff -c stage=stag
       - echo "Zipping node_modules for caching..."
       - zip -r node_modules.zip node_modules # Compress node_modules
 artifacts:

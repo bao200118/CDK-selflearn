@@ -12,7 +12,7 @@ phases:
     commands:
       - echo "Copy environment"
       - cp .env.development .env
-      - npm run cdk deploy --require-approval never -c stage=stag
+      - npm run cdk-deploy --require-approval never -c stage=stag
 artifacts:
   files:
     - "**/*" # Include your build artifacts
