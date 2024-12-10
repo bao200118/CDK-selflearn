@@ -195,6 +195,7 @@ export class CdkSelflearnStack extends cdk.Stack {
         buildSpec: codebuild.BuildSpec.fromSourceFilename(buildSpecFile),
         environment: {
           computeType: codebuild.ComputeType.SMALL,
+          buildImage: codebuild.LinuxBuildImage.STANDARD_5_0
         },
         environmentVariables: {
           VARIABLE: {
