@@ -99,7 +99,7 @@ export class CdkSelflearnStack extends cdk.Stack {
             "iam:*Role*"
           ],
           resources: [
-            `arn:aws:iam::${process.env.AWS_ACCOUNT_ID}:role/cdk-*`
+            `arn:aws:iam::${process.env.CDK_DEFAULT_ACCOUNT}:role/cdk-*`
           ]
         }),
         new iam.PolicyStatement({
@@ -108,7 +108,7 @@ export class CdkSelflearnStack extends cdk.Stack {
             "cloudformation:*"
           ],
           resources: [
-            `arn:aws:cloudformation:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:stack/CDKToolkit/*`
+            `arn:aws:cloudformation:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:stack/CDKToolkit/*`
           ],
         }),
         new iam.PolicyStatement({
@@ -134,7 +134,7 @@ export class CdkSelflearnStack extends cdk.Stack {
             "ecr:PutLifecyclePolicy"
           ],
           resources: [
-            `arn:aws:ecr:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:repository/cdk-*`
+            `arn:aws:ecr:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:repository/cdk-*`
           ]
         }),
         new iam.PolicyStatement({
@@ -145,13 +145,12 @@ export class CdkSelflearnStack extends cdk.Stack {
             "ssm:DeleteParameter*"
           ],
           resources: [
-            `arn:aws:ssm:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:parameter/cdk-bootstrap/*`],
+            `arn:aws:ssm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/cdk-bootstrap/*`],
         })
       ]
     })
 
     policyCdk.attachToRole(codebuildRole)
-    const outputChangeSets = new awsCodepipeline.Artifact()
     codepipeline.addStage({
       stageName: 'ChangeSet',
       actions: [
@@ -159,8 +158,6 @@ export class CdkSelflearnStack extends cdk.Stack {
           actionName: `Cdk-CodebuildAction-ChangeSets`,
           project: this.createCodebuildProject('ChangeSets', 'changesets-spec.yml', codebuildRole),
           input: inputCodebuild,
-          // Output zip file node_modules, so that deploy stage no need to install again
-          outputs: [outputChangeSets],
         }),
       ],
     });
@@ -178,7 +175,7 @@ export class CdkSelflearnStack extends cdk.Stack {
         new codepipelineActions.CodeBuildAction({
           actionName: `Cdk-CodebuildAction-Deploy`,
           project: this.createCodebuildProject('Deploy', 'deploy-spec.yml', codebuildRole),
-          input: outputChangeSets,
+          input: inputCodebuild,
         }),
       ]
     })

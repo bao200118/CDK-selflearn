@@ -1,15 +1,13 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      nodejs: 18 # Specify the desired Node.js version
-  pre_build:
-    commands:
-      - echo "Extracting cached dependencies..."
-      - unzip -q node_modules.zip -d ./ # Unzip into the current directory
   deploy:
     commands:
+      - npm install
+      - echo "Configuring AWS CLI..."
+      - aws --version  # Verify AWS CLI is installed
+      - echo "Configuring AWS CDK..."
+      - npm run cdk --version  # Verify AWS CDK is installed
       - echo "Copy environment"
       - cp .env.development .env
       - npm run cdk-deploy -- -c stage=stag --require-approval never
