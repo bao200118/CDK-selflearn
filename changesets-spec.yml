@@ -10,5 +10,5 @@ phases:
       - npm run cdk --version  # Verify AWS CDK is installed
       - echo "Retrieving AWS Account ID..."
       - export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)  # Dynamically get Account ID
-      - npm cdk bootstrap aws://$AWS_ACCOUNT_ID/$AWS_REGION
+      - npm run cdk bootstrap aws://$AWS_ACCOUNT_ID/$AWS_REGION
       - npm run cdk-diff -- -c stage=stag
