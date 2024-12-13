@@ -179,6 +179,11 @@ export class CdkSelflearnStack extends cdk.Stack {
         }),
       ]
     })
+
+    const measurementBucket = new s3.Bucket(this, 'Cdk-BucketMeasurement', {
+      bucketName: 'cdk-bucket-measurement',
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    })
   }
 
   // Get all variable in file env
