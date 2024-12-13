@@ -151,39 +151,40 @@ export class CdkSelflearnStack extends cdk.Stack {
     })
 
     policyCdk.attachToRole(codebuildRole)
-    codepipeline.addStage({
-      stageName: 'ChangeSet',
-      actions: [
-        new codepipelineActions.CodeBuildAction({
-          actionName: `Cdk-CodebuildAction-ChangeSets`,
-          project: this.createCodebuildProject('ChangeSets', 'changesets-spec.yml', codebuildRole),
-          input: inputCodebuild,
-        }),
-      ],
-    });
-    codepipeline.addStage({
-      stageName: 'ManualApprove',
-      actions: [
-        new codepipelineActions.ManualApprovalAction({
-          actionName: 'Cdk-Manual-Approve'
-        })
-      ]
-    })
+    // codepipeline.addStage({
+    //   stageName: 'ChangeSet',
+    //   actions: [
+    //     new codepipelineActions.CodeBuildAction({
+    //       actionName: `Cdk-CodebuildAction-ChangeSets`,
+    //       project: this.createCodebuildProject('ChangeSets', 'changesets-spec.yml', codebuildRole),
+    //       input: inputCodebuild,
+    //     }),
+    //   ],
+    // });
     codepipeline.addStage({
       stageName: 'Deploy',
       actions: [
+        new codepipelineActions.ManualApprovalAction({
+          actionName: 'Cdk-Manual-Approve'
+        }),
         new codepipelineActions.CodeBuildAction({
           actionName: `Cdk-CodebuildAction-Deploy`,
-          project: this.createCodebuildProject('Deploy', 'deploy-spec.yml', codebuildRole),
+          project: this.createCodebuildProject('Deploy', 'one-stage-spec.yml', codebuildRole),
           input: inputCodebuild,
         }),
       ]
     })
+    // codepipeline.addStage({
+    //   stageName: 'Deploy',
+    //   actions: [
+        
+    //   ]
+    // })
 
-    const measurementBucket = new s3.Bucket(this, 'Cdk-BucketMeasurement', {
-      bucketName: 'cdk-bucket-measurement',
-      removalPolicy: cdk.RemovalPolicy.DESTROY
-    })
+    // const measurementBucket = new s3.Bucket(this, 'Cdk-BucketMeasurement', {
+    //   bucketName: 'cdk-bucket-measurement',
+    //   removalPolicy: cdk.RemovalPolicy.DESTROY
+    // })
   }
 
   // Get all variable in file env

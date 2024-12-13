@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - npm install
+      - echo "Configuring AWS CLI..."
+      - aws --version  # Verify AWS CLI is installed
+      - echo "Configuring AWS CDK..."
+      - npm run cdk --version  # Verify AWS CDK is installed
+      - echo "Retrieving AWS Account ID..."
+      - export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)  # Dynamically get Account ID
+      - npm run cdk bootstrap aws://$AWS_ACCOUNT_ID/$AWS_REGION
+      - npm run cdk-diff -- -c stage=stag
+  build:
+    commands:
+      - npm run cdk-deploy -- -c stage=stag --require-approval never
