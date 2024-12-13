@@ -1,15 +1,13 @@
 version: 0.2
 
 phases:
-  deploy:
+  build:
     commands:
       - npm install
       - echo "Configuring AWS CLI..."
       - aws --version  # Verify AWS CLI is installed
       - echo "Configuring AWS CDK..."
       - npm run cdk --version  # Verify AWS CDK is installed
-      - echo "Copy environment"
-      - cp .env.development .env
       - npm run cdk-deploy -- -c stage=stag --require-approval never
 artifacts:
   files:
