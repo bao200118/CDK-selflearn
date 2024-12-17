@@ -3,7 +3,7 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo "Fetching all parameters from SSM path: /cdk-parameters/"
+      - echo "Fetching all parameters from SSM path /cdk-parameters/"
       # Fetch all parameters and parse using aws cli and basic tools
       - aws ssm get-parameters-by-path --path "/cdk-parameters/" --recursive --with-decryption --output text --query "Parameters[*].[Name,Value]" > parameters.txt
 
