@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
       - yum install -y jq
-      - echo "Fetching all parameters from SSM path: /cdk-parameters/"
+      - echo "Fetching all parameters from SSM path /cdk-parameters/"
       # Fetch all parameters from SSM Parameter Store
       - PARAMETERS=$(aws ssm get-parameters-by-path --path "/cdk-parameters/" --recursive --with-decryption --query "Parameters" --output json)
       
