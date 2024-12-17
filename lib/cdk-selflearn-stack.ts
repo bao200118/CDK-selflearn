@@ -89,6 +89,14 @@ export class CdkSelflearnStack extends cdk.Stack {
       })
     );
 
+    codebuildRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParametersByPath'],
+        resources: [`arn:aws:ssm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/cdk-parameters/*`],
+      })
+    );
+
     const policyCdk = new iam.Policy(this, 'Cdk-Policy-Cdk', {
       statements: [
         new iam.PolicyStatement({

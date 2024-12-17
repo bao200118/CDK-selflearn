@@ -3,22 +3,22 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo "Fetching SSM parameters..."
-      # Use AWS CLI to fetch parameters by path
-      - |
-        PARAMS=$(aws ssm get-parameters-by-path \
-          --path "/your-path" \
-          --with-decryption \
-          --query 'Parameters[].{Name:Name,Value:Value}' \
-          --output json)
-      - echo "Exporting parameters as environment variables..."
-      - |
-        for row in $(echo "${PARAMS}" | jq -c '.[]'); do
-          NAME=$(echo $row | jq -r '.Name' | sed 's#.*/##') # Extract only the last part of the parameter name
-          VALUE=$(echo $row | jq -r '.Value')
-          echo "Exporting $NAME"
-          export "$NAME=$VALUE" # Export as env variable for the build
-        done
+      # - echo "Fetching SSM parameters..."
+      # # Use AWS CLI to fetch parameters by path
+      # - |
+      #   PARAMS=$(aws ssm get-parameters-by-path \
+      #     --path "/cdk-parameters" \
+      #     --with-decryption \
+      #     --query 'Parameters[].{Name:Name,Value:Value}' \
+      #     --output json)
+      # - echo "Exporting parameters as environment variables..."
+      # - |
+      #   for row in $(echo "${PARAMS}" | jq -c '.[]'); do
+      #     NAME=$(echo $row | jq -r '.Name' | sed 's#.*/##') # Extract only the last part of the parameter name
+      #     VALUE=$(echo $row | jq -r '.Value')
+      #     echo "Exporting $NAME"
+      #     export "$NAME=$VALUE" # Export as env variable for the build
+      #   done
       - npm install
       - echo "Configuring AWS CLI..."
       - aws --version  # Verify AWS CLI is installed
