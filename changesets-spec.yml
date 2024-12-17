@@ -3,21 +3,20 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - yum install -y jq
-      - echo "Fetching all parameters from SSM path /cdk-parameters/"
-      # Fetch all parameters from SSM Parameter Store
-      - PARAMETERS=$(aws ssm get-parameters-by-path --path "/cdk-parameters/" --recursive --with-decryption --query "Parameters" --output json)
-      
-      # Export each parameter as an environment variable
-      - for row in $(echo "${PARAMETERS}" | jq -r '.[] | @base64'); do
-            PARAM_NAME=$(echo ${row} | base64 --decode | jq -r '.Name' | sed 's|/cdk-parameters/||g' | tr '/' '_');
-            PARAM_VALUE=$(echo ${row} | base64 --decode | jq -r '.Value');
-            echo "Exporting $PARAM_NAME";
-            export $PARAM_NAME="$PARAM_VALUE";
-            echo "export $PARAM_NAME=\"$PARAM_VALUE\"" >> $CODEBUILD_SRC_DIR/.env;
-        done
+      - echo "Fetching all parameters from SSM path: /cdk-parameters/"
+      # Fetch all parameters and parse using aws cli and basic tools
+      - aws ssm get-parameters-by-path --path "/cdk-parameters/" --recursive --with-decryption --output text --query "Parameters[*].[Name,Value]" > parameters.txt
 
-      - echo "All parameters have been exported successfully."
+      # Process each parameter and export it as an environment variable
+      - while read -r name value; do
+            VAR_NAME=$(echo "$name" | sed 's|/cdk-parameters/||g' | tr '/' '_' | tr '-' '_');
+            echo "Exporting $VAR_NAME";
+            export $VAR_NAME="$value";
+            echo "export $VAR_NAME=\"$value\"" >> $CODEBUILD_SRC_DIR/.env;
+        done < parameters.txt
+
+      - echo "All parameters exported successfully."
+      - cat $CODEBUILD_SRC_DIR/.env
 
   build:
     commands:
