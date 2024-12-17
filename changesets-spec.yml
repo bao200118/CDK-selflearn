@@ -3,20 +3,19 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo "Fetching all parameters from SSM path /cdk-parameters/"
+      - echo "Fetching all parameters from SSM path /cdk-parameters/$VARIABLE"
       # Fetch all parameters and parse using aws cli and basic tools
-      - aws ssm get-parameters-by-path --path "/cdk-parameters/" --recursive --with-decryption --output text --query "Parameters[*].[Name,Value]" > parameters.txt
+      - aws ssm get-parameters-by-path --path "/cdk-parameters/$VARIABLE" --recursive --with-decryption --output text --query "Parameters[*].[Name,Value]" > parameters.txt
 
       # Process each parameter and export it as an environment variable
       - while read -r name value; do
-            VAR_NAME=$(echo "$name" | sed 's|/cdk-parameters/||g' | tr '/' '_' | tr '-' '_');
+            VAR_NAME=$(echo "$name" | sed 's|/cdk-parameters/$VARIABLE||g' | tr '/' '_' | tr '-' '_');
             echo "Exporting $VAR_NAME";
             export $VAR_NAME="$value";
-            echo "export $VAR_NAME=\"$value\"" >> $CODEBUILD_SRC_DIR/.env;
+            echo "export $VAR_NAME=\"$value\"" >> $CODEBUILD_SRC_DIR/config.env;
         done < parameters.txt
 
       - echo "All parameters exported successfully."
-      - cat $CODEBUILD_SRC_DIR/.env
 
   build:
     commands:
